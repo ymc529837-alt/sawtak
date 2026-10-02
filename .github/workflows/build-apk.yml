@@ -1,38 +1,42 @@
-name: Build Sawtak APK
+name: Sawtak APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: استخراج مشروع صوتك
+        uses: actions/checkout@v4
 
-      - name: Extract Sawtak project
+      - name: استخراج مشروع صوتك من ملف ZIP
         run: |
           mkdir -p extracted
-          unzip -o sawtak_fixed_v2.zip -d extracted
+          unzip -q sawtak_fixed_v2.zip -d extracted
           cp google-services.json extracted/sawtak/android/app/google-services.json
           cp -a extracted/sawtak/. .
 
-      - uses: subosito/flutter-action@v2
+      - name: إعداد Flutter
+        uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.16.0'
 
-      - name: Generate Android files
-        run: flutter create --platforms=android --project-name=sawtak .
+      - name: إنشاء ملفات Android
+        run: |
+          flutter create --platforms=android --project-name=sawtak .
 
-      - name: Install dependencies
+      - name: تثبيت الحزم
         run: flutter pub get
 
-      - name: Build APK
+      - name: إنشاء ملف APK
         run: flutter build apk --release
 
-      - name: Upload APK
+      - name: تحميل ملف APK
         uses: actions/upload-artifact@v4
         with:
           name: sawtak-apk
